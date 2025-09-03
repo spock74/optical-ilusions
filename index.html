@@ -1,42 +1,51 @@
-<!doctype html>
-<html lang="en">
-
+<!DOCTYPE html>
+<html lang="pt-br">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Baking with the Gemini API</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="title">Ilusão de Movimento Circular Interativa</title>
+    <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
-  <main>
-    <h1>Baking with the Gemini API</h1>
-    <form>
-      <div class="image-picker">
-        <label class="image-choice">
-          <input type="radio" checked name="chosen-image" value="/baked_goods_1.jpg">
-          <img src="/baked_goods_1.jpg">
-        </label>
-        <label class="image-choice">
-          <input type="radio" name="chosen-image" value="/baked_goods_2.jpg">
-          <img src="/baked_goods_2.jpg">
-        </label>
-        <label class="image-choice">
-          <input type="radio" name="chosen-image" value="/baked_goods_3.jpg">
-          <img src="/baked_goods_3.jpg">
-        </label>
-      </div>
-      <div class="prompt-box">
-        <label>
-          <input name="prompt" placeholder="Enter instructions here" type="text"
-            value="Provide an example recipe for the baked goods in the image">
-        </label>
-        <button type="submit">Go</button>
-      </div>
-    </form>
-    <p class="output">(Results will appear here)</p>
-  </main>
+    <header>
+        <div class="dropdown">
+            <button class="dropdown-btn">Idioma</button>
+            <div class="dropdown-content">
+                <a href="#" id="lang-pt">Português</a>
+                <a href="#" id="lang-en">English</a>
+            </div>
+        </div>
+    </header>
+    <div class="app-container">
+        <canvas id="animacaoCanvas" width="500" height="500"></canvas>
+        <p id="descricaoFase" data-i18n="clickToStart"></p>
+        <div class="controls">
+            <div class="slider-group">
+                <label for="velocidadeSlider" data-i18n="oscillationSpeed">Velocidade da Oscilação</label>
+                <input type="range" id="velocidadeSlider" min="1" max="100" value="30">
+            </div>
+            <div class="button-group">
+                <button id="btnIniciar" data-i18n="start">Iniciar</button>
+                <button id="btnParar" data-i18n="stop" disabled>Parar</button>
+                <button id="btnContinuar" data-i18n="continue" disabled>Continuar</button>
+                <button id="btnTerminar" data-i18n="end" disabled>Terminar</button>
+                <button id="btnExplicar" data-i18n="explainPhenomenon" disabled>✨ Explicar Fenómeno</button>
+            </div>
+        </div>
+        <div id="gemini-response-container" class="response-container">
+            <div id="gemini-loader" class="loader" style="display: none;"></div>
+            <p id="gemini-response-text"></p>
+        </div>
+        <div id="nerds-button-container" class="button-group" style="display: none; margin-top: 10px;">
+             <button id="btnPesquisarNerds" data-i18n="forNerds">Explicação Para Nerds</button>
+        </div>
+        <div id="nerd-response-container" class="response-container">
+            <div id="nerd-loader" class="loader" style="display: none;"></div>
+            <div id="nerd-content"></div>
+        </div>
+    </div>
 
-  <script type="module" src="/main.js"></script>
+    <script src="src/i18n.js"></script>
+    <script type="module" src="main.js"></script>
 </body>
-
 </html>
