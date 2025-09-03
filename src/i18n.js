@@ -1,4 +1,4 @@
-const translations = {
+export const translations = {
   'pt-BR': {
     title: "Ilusão de Movimento Circular Interativa",
     oscillationSpeed: "Velocidade da Oscilação",
@@ -28,7 +28,7 @@ const translations = {
     clickToStart: "Click 'Start' to begin.",
     animationPaused: "Animation paused.",
     phase1Description: "Phase 1: This looks like a rotation, but it's not.",
-    phase2Description: "Phase 2: Each point only moves in a straight line.",
+    phase2Description: "Phase 2: Each dot just moves in a straight line.",
     reviewArticles: "Review Articles",
     recentExperimentalArticles: "Recent Experimental Articles",
     pmcQueries: "PMC Queries"

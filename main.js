@@ -1,3 +1,4 @@
+import { translations } from './src/i18n.js';
 'use strict';
 
 // --- CONFIGURAÇÃO E CONSTANTES GLOBAIS ---
