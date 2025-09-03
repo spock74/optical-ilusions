@@ -237,3 +237,55 @@ input[type="range"]::-webkit-slider-thumb {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+
+/* Estilos para o Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s, visibility 0.3s;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: #2a2a2e;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+  transform: scale(0.9);
+  transition: transform 0.3s;
+  max-width: 500px;
+  width: 90%;
+  text-align: center;
+}
+
+.modal-overlay.visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.modal-overlay.visible .modal-content {
+  transform: scale(1);
+}
+
+.modal-content p {
+    color: #e0e0e0;
+    font-size: 16px;
+    line-height: 1.6;
+    margin-bottom: 20px;
+}
+
+.modal-content button {
+    background-color: #6f42c1;
+    padding: 10px 30px;
+    font-size: 16px;
+    border-radius: 8px;
+}

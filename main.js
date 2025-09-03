@@ -6,6 +6,7 @@ const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY}`;
 const SYSTEM_PROMPT = "Aja como um comunicador de ciência e professor de psicofisiologia e neurofisiologia. As suas explicações devem ser claras, concisas e fascinantes, usando analogias simples para explicar conceitos complexos. Responda em português do Brasil.";
 const USER_QUERY = "Explique o fenómeno de percepção visual demonstrado nesta animação. Múltiplos pontos brancos estão a mover-se para a frente e para trás em linhas retas (movimento harmónico simples) em diferentes eixos. No entanto, quando vistos em conjunto, nós humanos interpreta o seu movimento combinado como uma rotação circular. Explique por que esta ilusão de ótica acontece.";
+const FALLBACK_EXPLANATION = "Olá! Essa animação demonstra um fenômeno fascinante da percepção visual, que chamamos de **ilusão de movimento induzido**. Não estamos vendo rotação real, mas sim nosso cérebro \"interpretando\" o movimento linear de múltiplos pontos como uma rotação. Isso acontece por causa de como nosso sistema visual processa a informação. Imagine que seu cérebro é um detetive investigando uma cena. Ele recebe pistas individuais (os pontos se movendo em linha reta) e, para tornar tudo mais fácil de entender, tenta encontrar o padrão mais simples que explique todas as pistas. Em vez de processar cada ponto independentemente – o que seria um trabalho gigantesco – ele busca uma explicação global, mais econômica. A rotação é essa explicação mais simples. Nosso cérebro é excelente em identificar padrões e movimentos. Ele \"prefere\" ver um movimento contínuo e organizado (a rotação) do que um conjunto confuso de movimentos lineares independentes. É como conectar os pontos de uma constelação: você não vê só pontos de luz, mas formas familiares. Podemos pensar em algumas razões que contribuem para essa interpretação errônea: * **Limitações do processamento paralelo:** Nosso cérebro não processa todas as informações simultaneamente com a mesma precisão. Ele faz aproximações e inferências para economizar energia e tempo. Ao ver múltiplos pontos em movimento, ele escolhe a interpretação mais plausível, que é, neste caso, a rotação. * **Falta de contexto:** A animação não oferece nenhum ponto de referência estável. Sem referências, é difícil para o cérebro avaliar a profundidade e a distância exata de cada ponto, levando-o a interpretar o movimento de forma diferente. * **Preferencia por padrões:** Nosso cérebro busca padrões e ordem em informações sensoriais. A percepção de rotação é um padrão mais organizado e harmonioso do que a percepção de pontos se movendo aleatoriamente. Em resumo, essa ilusão não é uma falha, mas uma demonstração de como o nosso sistema visual trabalha de forma inteligente, mas também simplificada. Ele busca a interpretação mais eficiente, mesmo que essa interpretação não seja a realidade física observada. É uma bela demonstração de como a nossa percepção é construída ativamente pelo cérebro, e não simplesmente uma cópia passiva do mundo externo.";
 
 const PONTO_COR = 'white';
 const FUNDO_COR = '#d40000';
@@ -34,16 +35,15 @@ const elementos = {
     geminiLoader: document.getElementById('gemini-loader'),
     geminiText: document.getElementById('gemini-response-text'),
     nerdsButtonContainer: document.getElementById('nerds-button-container'),
-    nerdContainer: document.getElementById('nerd-response-container'),
-    nerdLoader: document.getElementById('nerd-loader'),
-    nerdContent: document.getElementById('nerd-content')
+    nerdModal: document.getElementById('nerd-modal'),
+    nerdModalOk: document.getElementById('nerd-modal-ok'),
+    mainBody: document.getElementById('main-body')
 };
 
 // --- ESTADO DA APLICAÇÃO ---
 const estado = {
     app: 'IDLE', // IDLE, RUNNING, PAUSED
     isGeminiLoading: false,
-    isNerdSearchLoading: false,
     animationFrameId: null,
     faseAnimacao: 1,
     anguloBase: 0,
@@ -57,21 +57,6 @@ const estado = {
 const ctx = elementos.canvas.getContext('2d');
 const centroX = elementos.canvas.width / 2;
 const centroY = elementos.canvas.height / 2;
-
-// --- ARTIGOS CIENTÍFICOS ---
-const artigosCientificos = {
-    queries: [
-        { title: '("visual perception" OR "motion perception") AND ("Gestalt principles" OR "emergent properties")', link: 'https://www.ncbi.nlm.nih.gov/pmc/?term=(%22visual+perception%22+OR+%22motion+perception%22)+AND+(%22Gestalt+principles%22+OR+%22emergent+properties%22)' },
-        { title: '"circular motion illusion" OR "visual motion illusion"', link: 'https://www.ncbi.nlm.nih.gov/pmc/?term=%22circular+motion+illusion%22+OR+%22visual+motion+illusion%22' }
-    ],
-    revisoes: [
-        { title: "A Primer on Gestalt Psychology", link: "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8978553/", journal: "Frontiers in Psychology, 2022" },
-        { title: "Gestalt theory rearranged: Back to Wertheimer", link: "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4535213/", journal: "Frontiers in Psychology, 2015" }
-    ],
-    experimentais: [
-        { title: "Neural correlates of the vibrating motion illusion in human V5/MT+", link: "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8107931/", journal: "NeuroImage, 2021" }
-    ]
-};
 
 // --- LÓGICA DE INTERNACIONALIZAÇÃO (i18n) ---
 function setLanguage(lang) {
@@ -126,8 +111,8 @@ function atualizarEstadoBotoes() {
     elementos.btnParar.disabled = estado.app !== 'RUNNING';
     elementos.btnContinuar.disabled = estado.app !== 'PAUSED';
     elementos.btnTerminar.disabled = estado.app === 'IDLE';
-    elementos.btnExplicar.disabled = estado.app === 'IDLE' || estado.isGeminiLoading || estado.isNerdSearchLoading;
-    elementos.btnPesquisarNerds.disabled = estado.isNerdSearchLoading || estado.isGeminiLoading;
+    elementos.btnExplicar.disabled = estado.app === 'IDLE' || estado.isGeminiLoading;
+    elementos.btnPesquisarNerds.disabled = estado.isGeminiLoading;
 }
 
 function mostrarConteudo(container, loader, content) {
@@ -146,7 +131,6 @@ async function fetchExplanation() {
     estado.isGeminiLoading = true;
     mostrarConteudo(elementos.geminiContainer, elementos.geminiLoader, elementos.geminiText);
     esconderConteudo(elementos.nerdsButtonContainer);
-    esconderConteudo(elementos.nerdContainer, elementos.nerdLoader);
     atualizarEstadoBotoes();
 
     try {
@@ -163,14 +147,16 @@ async function fetchExplanation() {
 
         const result = await response.json();
         const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
-        elementos.geminiText.textContent = text || "Não foi possível obter uma explicação. Tente novamente.";
+        elementos.geminiText.innerHTML = text ? text.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+                                        .replace(/\*([^*]+)\*/g, '<em>$1</em>') : FALLBACK_EXPLANATION;
+
         if (text) {
             elementos.nerdsButtonContainer.style.display = 'flex';
         }
 
     } catch (error) {
         console.error("Error calling Gemini API:", error);
-        elementos.geminiText.textContent = "Ocorreu um erro ao comunicar com a API. Verifique a consola para mais detalhes.";
+        elementos.geminiText.innerHTML = FALLBACK_EXPLANATION;
     } finally {
         estado.isGeminiLoading = false;
         elementos.geminiLoader.style.display = 'none';
@@ -180,39 +166,13 @@ async function fetchExplanation() {
 
 // --- LÓGICA DA PESQUISA NERD ---
 function handleNerdSearch() {
-    if (elementos.nerdContainer.style.display === 'block') {
-        esconderConteudo(elementos.nerdContainer, elementos.nerdLoader);
-        return;
-    }
+    elementos.nerdModal.classList.add('visible');
+    elementos.mainBody.style.overflow = 'hidden';
+}
 
-    estado.isNerdSearchLoading = true;
-    mostrarConteudo(elementos.nerdContainer, elementos.nerdLoader, elementos.nerdContent);
-    atualizarEstadoBotoes();
-
-    setTimeout(() => {
-        let htmlContent = `<h4>${translations[estado.currentLanguage].pmcQueries}</h4><ul>`;
-        artigosCientificos.queries.forEach(query => {
-            htmlContent += `<li><a href="${query.link}" target="_blank">${query.title}</a></li>`;
-        });
-        htmlContent += '</ul>';
-
-        htmlContent += `<h4 style="margin-top: 20px;">${translations[estado.currentLanguage].reviewArticles}</h4><ul>`;
-        artigosCientificos.revisoes.forEach(art => {
-            htmlContent += `<li><a href="${art.link}" target="_blank">${art.title}</a> (${art.journal})</li>`;
-        });
-        htmlContent += '</ul>';
-
-        htmlContent += `<h4 style="margin-top: 20px;">${translations[estado.currentLanguage].recentExperimentalArticles}</h4><ul>`;
-        artigosCientificos.experimentais.forEach(art => {
-            htmlContent += `<li><a href="${art.link}" target="_blank">${art.title}</a> (${art.journal})</li>`;
-        });
-        htmlContent += '</ul>';
-
-        elementos.nerdContent.innerHTML = htmlContent;
-        estado.isNerdSearchLoading = false;
-        elementos.nerdLoader.style.display = 'none';
-        atualizarEstadoBotoes();
-    }, 1000);
+function closeNerdModal() {
+    elementos.nerdModal.classList.remove('visible');
+    elementos.mainBody.style.overflow = 'auto';
 }
 
 // --- LÓGICA DA ANIMAÇÃO ---
@@ -314,20 +274,19 @@ function setupEventListeners() {
         atualizarEstadoBotoes();
         esconderConteudo(elementos.geminiContainer, elementos.geminiLoader);
         esconderConteudo(elementos.nerdsButtonContainer);
-        esconderConteudo(elementos.nerdContainer, elementos.nerdLoader);
     });
 
     elementos.btnExplicar.addEventListener('click', () => {
         if (elementos.geminiContainer.style.display === 'block') {
             esconderConteudo(elementos.geminiContainer, elementos.geminiLoader);
             esconderConteudo(elementos.nerdsButtonContainer);
-            esconderConteudo(elementos.nerdContainer, elementos.nerdLoader);
         } else {
             fetchExplanation();
         }
     });
 
     elementos.btnPesquisarNerds.addEventListener('click', handleNerdSearch);
+    elementos.nerdModalOk.addEventListener('click', closeNerdModal);
 }
 
 // --- INICIALIZAÇÃO DA APLICAÇÃO ---

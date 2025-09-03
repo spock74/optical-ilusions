@@ -6,7 +6,7 @@
     <title data-i18n="title">Ilusão de Movimento Circular Interativa</title>
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body id="main-body">
     <header>
         <div class="dropdown">
             <button class="dropdown-btn">Idioma</button>
@@ -37,11 +37,18 @@
             <p id="gemini-response-text"></p>
         </div>
         <div id="nerds-button-container" class="button-group" style="display: none; margin-top: 10px;">
-             <button id="btnPesquisarNerds" data-i18n="forNerds">Explicação Para Nerds</button>
+             <button id="btnPesquisarNerds" data-i18n="forNerds">Explicações para Nerds</button>
         </div>
         <div id="nerd-response-container" class="response-container">
             <div id="nerd-loader" class="loader" style="display: none;"></div>
             <div id="nerd-content"></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="nerd-modal">
+        <div class="modal-content">
+            <p>Em implementação busca de revisões bibliográficas no Pubmed sobre essa e outras Ilusões de óptica e ferramentas de AI para ajudar na interpretação de tais artigos</p>
+            <button id="nerd-modal-ok">OK</button>
         </div>
     </div>
 
