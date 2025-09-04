@@ -1,5 +1,7 @@
 # Ilusão de Movimento Circular Interativa
 
+> Just a small toy project
+
 Este projeto é uma demonstração interativa de uma fascinante ilusão de ótica onde múltiplos pontos, movendo-se em linhas retas, criam a percepção de um movimento circular contínuo. A aplicação web permite aos usuários visualizar a ilusão, entender como ela funciona e obter uma explicação científica gerada pela API do Google Gemini.
 
 **Nota:** Este é um projeto em estágio inicial. Novas funcionalidades e melhorias serão adicionadas no futuro.
